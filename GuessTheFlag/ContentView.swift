@@ -28,6 +28,9 @@ struct ContentView: View {
     
     @State private var score = 0
     
+    @State private var rotationAmount = 0.0
+    @State private var wrongFlagsOpacity = 1.0
+    
     var body: some View {
         ZStack {
             LinearGradient(gradient: Gradient(colors: [.blue, .black]), startPoint: .top, endPoint: .bottom).edgesIgnoringSafeArea(.all)
@@ -43,9 +46,18 @@ struct ContentView: View {
                 
                 ForEach(0..<3) { number in
                     Button(action: {
-                        flagTapped(number)
+                        withAnimation {
+                            rotationAmount += 360.0
+                            wrongFlagsOpacity = 0.25
+                            flagTapped(number)
+                        }
                     }) {
                         FlagImage(country: countries[number])
+                            .rotation3DEffect(
+                                .degrees(number == correctAnswer ? rotationAmount : 0),
+                                axis: (x: 0.0, y: 1.0, z: 0.0)
+                            )
+                            .opacity(number == correctAnswer ? 1.0 : wrongFlagsOpacity)
                     }
                 }
                 
@@ -63,7 +75,9 @@ struct ContentView: View {
                 title: Text(scoreTitle),
                 message: Text("Your score is now \(score)"),
                 dismissButton: .default(Text("Continue")) {
+                    wrongFlagsOpacity = 1.0
                     askQuestion()
+                    
                 }
             )
         }
@@ -77,7 +91,6 @@ struct ContentView: View {
             scoreTitle = "Wrong :( That's \(countries[number])"
             score -= 10
         }
-        
         showingScore = true
     }
     
